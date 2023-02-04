@@ -2,8 +2,9 @@
 
 set -e
 
-echo "run db migration - source: $DB_SOURCE"
+echo "run db migration"
 . /app/app.env
+echo "DB source: $DB_SOURCE"
 #source /app/app.env # this highlights error
 /app/migrate -path /app/migration -database "$DB_SOURCE" -verbose up
 
