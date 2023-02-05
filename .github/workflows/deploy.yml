@@ -14,6 +14,8 @@ jobs:
   deploy:
     name: Build image
     runs-on: ubuntu-latest
+    env:
+      AWS_DEFAULT_REGION: eu-west-2
 
     steps:
       - name: Checkout repo
@@ -28,9 +30,11 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1 # More information on this action can be found below in the 'AWS Credentials' section
         with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 #          role-to-assume: arn:aws:iam::431553748608:role/github-actions-role
-          role-to-assume: arn:aws:iam::431553748608:role/AWSEKSNodeRole
-          aws-region: eu-west-2
+#          role-to-assume: arn:aws:iam::431553748608:role/AWSEKSNodeRole
+          aws-region: ${{env.AWS_DEFAULT_REGION}}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -49,7 +53,7 @@ jobs:
           docker push -a $REGISTRY/$REPOSITORY
 
       - name: Update kube config
-        run: aws eks update-kubeconfig --name simple-bank --region eu-west-2
+        run: aws eks update-kubeconfig --name simple-bank --region ${{env.AWS_DEFAULT_REGION}}
 
       - name: Deploy image to Amazon EKS
         run: |
