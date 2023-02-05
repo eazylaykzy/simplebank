@@ -25,7 +25,6 @@ jobs:
           version: "v1.26.1"
         id: install
 
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1 # More information on this action can be found below in the 'AWS Credentials' section
         with:
@@ -53,6 +52,7 @@ jobs:
 
       - name: Deploy image to Amazon EKS
         run: |
+          kubectl config current-context
           kubectl apply -f eks/aws-auth.yaml
           kubectl apply -f eks/deployment.yaml
           kubectl apply -f eks/service.yaml

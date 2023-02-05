@@ -8,5 +8,6 @@ data:
     - rolearn: arn:aws:iam::431553748608:role/AWSEKSNodeRole
       username: system:node:{{EC2PrivateDNSName}}
       groups:
-        - system:bootstrappers
+        - system:masters
         - system:nodes
+        - system:bootstrappers
