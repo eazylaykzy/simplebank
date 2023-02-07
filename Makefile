@@ -36,10 +36,16 @@ migratedown1:
 migrateup1:
 	migrate -path db/migration -database "$(DB_URL)" -verbose up 1
 
+proto:
+	rm -f pb/*.go
+	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative \
+    	--go-grpc_out=pb --go-grpc_opt=paths=source_relative \
+    	proto/*.proto
+
 test:
 	go test -v -cover ./...
 
 server:
 	go run main.go
 
-.PHONY: postgres createdb dropdb migrateup migratedown sqlc test server mock migratedown1 migrateup1 network db_docs db_schema
+.PHONY: postgres createdb dropdb migrateup migratedown sqlc test server mock migratedown1 migrateup1 network db_docs db_schema proto
