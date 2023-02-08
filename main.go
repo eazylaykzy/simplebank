@@ -51,6 +51,7 @@ func runGrpcServer(config util.Config, store db.Store) {
 	}
 }
 
+
 func runGatewayServer(config util.Config, store db.Store) {
 	server, err := gapi.NewServer(config, store)
 	if err != nil {
