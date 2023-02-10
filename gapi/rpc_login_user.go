@@ -3,6 +3,9 @@ package gapi
 import (
 	"context"
 	"database/sql"
+	"github.com/eazylaykzy/simplebank/validation"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
+	"strings"
 
 	db "github.com/eazylaykzy/simplebank/db/sqlc"
 	"github.com/eazylaykzy/simplebank/pb"
@@ -13,7 +16,12 @@ import (
 )
 
 func (server *Server) LoginUser(ctx context.Context, req *pb.LoginUserRequest) (*pb.LoginUserResponse, error) {
-	user, err := server.store.GetUser(ctx, req.GetUsername())
+	violations := validateLoginUserRequest(req)
+	if violations != nil {
+		return nil, invalidArgumentError(violations)
+	}
+
+	user, err := server.store.GetUser(ctx, strings.ToLower(req.GetUsername()))
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, status.Errorf(codes.NotFound, "user not found")
@@ -42,7 +50,7 @@ func (server *Server) LoginUser(ctx context.Context, req *pb.LoginUserRequest) (
 		return nil, status.Errorf(codes.Internal, "failed to create refresh token")
 	}
 
-  mtdt := server.extractMetadata(ctx)
+	mtdt := server.extractMetadata(ctx)
 	session, err := server.store.CreateSession(ctx, db.CreateSessionParams{
 		ID:           refreshPayload.ID,
 		Username:     user.Username,
@@ -65,4 +73,16 @@ func (server *Server) LoginUser(ctx context.Context, req *pb.LoginUserRequest) (
 		RefreshTokenExpiresAt: timestamppb.New(refreshPayload.ExpiredAt),
 	}
 	return rsp, nil
+}
+
+func validateLoginUserRequest(req *pb.LoginUserRequest) (violations []*errdetails.BadRequest_FieldViolation) {
+	if err := validation.ValidateUsername(req.GetUsername()); err != nil {
+		violations = append(violations, fieldViolation("username", err))
+	}
+
+	if err := validation.ValidatePassword(req.GetPassword()); err != nil {
+		violations = append(violations, fieldViolation("password", err))
+	}
+
+	return violations
 }
